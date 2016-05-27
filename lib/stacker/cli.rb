@@ -188,7 +188,7 @@ YAML
     end
 
     def resolve stack
-      return {} if stack.parameters.resolver.dependencies.none?
+      return {} if stack.parameters.dependencies.none?
       Stacker.logger.debug 'Resolving dependencies...'
       stack.parameters.resolved
     end

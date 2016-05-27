@@ -1,38 +1,19 @@
 module Stacker
-  class Resolver
+  module Resolvers
 
-    attr_reader :region, :parameters
+    class Resolver
 
-    def initialize region, parameters
-      @region, @parameters = region, parameters
-    end
+      attr_reader :region, :parameters
 
-    def dependencies
-      @dependencies ||= parameters.values.flatten.select { |value|
-        value.is_a?(Hash)
-      }.map { |ref|
-        "#{ref.fetch('Stack')}.#{ref.fetch('Output')}"
-      }
-    end
+      def initialize ref, region
+        @ref = ref
+        @region = region
+      end
 
-    def resolved
-      @resolved ||= Hash[parameters.map do |name, value|
-        if value.is_a? Hash
-          value = resolve_reference(value)
-        elsif value.is_a? Array
-          value = value.map do |ref|
-            ref.is_a?(Hash) ? resolve_reference(ref) : ref
-          end.join ','
-        end
-        [ name, value ]
-      end]
-    end
+      def resolve
+        raise NotImplementedError
+      end
 
-    private
-
-    def resolve_reference(ref)
-      stack = region.stack ref.fetch('Stack')
-      stack.outputs.fetch ref.fetch('Output')
     end
 
   end
