@@ -1,3 +1,5 @@
+require 'stacker/resolvers/resolver'
+
 module Stacker
   module Resolvers
 

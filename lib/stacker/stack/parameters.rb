@@ -49,12 +49,12 @@ module Stacker
       memoize :remote
 
       def resolved
-        Hash[parameters.map { |p| [ p.name, p.resolved ] }]
+        Hash[parameters.map { |p| [ p[0], p[1].resolved ] }]
       end
       memoize :resolved
 
       def dependencies
-          parameters.select(&:dependency?).map(&:to_s)
+        parameters.map(&:last).map(&:dependencies).flatten
       end
       memoize :dependencies
 
@@ -66,7 +66,7 @@ module Stacker
       private
 
       def parameters
-        local.values.map { |k, v| Parameter.new k, v, stack.region }
+        local.map { |k, v| [k, Parameter.new(v, stack.region)] }
       end
 
     end
