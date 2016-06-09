@@ -24,7 +24,7 @@ module Stacker
       end
 
       def dependencies
-        if value.is_a?(Hash)
+        if dependency?
           [ to_s ]
         elsif value.is_a?(Array)
           value.map(&:dependencies).flatten

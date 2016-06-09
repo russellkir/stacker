@@ -49,7 +49,7 @@ module Stacker
       memoize :remote
 
       def resolved
-        Hash[parameters.map { |p| [ p[0], p[1].resolved ] }]
+        Hash[parameters.map { |k, v| [ k, v.resolved ] }]
       end
       memoize :resolved
 
