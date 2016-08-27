@@ -21,9 +21,7 @@ module Stacker
     CLIENT_METHODS = %w[
       creation_time
       description
-      exists?
       last_updated_time
-      status
       status_reason
     ]
 
@@ -53,7 +51,18 @@ JSON
     end
 
     def client
-      @client ||= region.client.stacks[name]
+      @client ||= begin
+        res = region.client.describe_stacks(stack_name: name)
+        res.stacks.first
+      end
+    end
+
+    def exists?
+      !!client
+    end
+
+    def status
+      client.stack_status
     end
 
     delegate *CLIENT_METHODS, to: :client
@@ -78,7 +87,9 @@ JSON
     def outputs
       @outputs ||= begin
         return {} unless complete?
-        Hash[client.outputs.map { |output| [ output.key, output.value ] }]
+        Hash[client.outputs.map do |output|
+               [ output.output_key, output.output_value ]
+             end]
       end
     end
 
@@ -96,15 +107,22 @@ JSON
 
       Stacker.logger.info 'Creating stack'
 
-      region.client.stacks.create(
-        name,
-        template.local,
-        parameters: parameters.resolved,
+      params = parameters.resolved.map do |k, v|
+        {
+          parameter_key: k,
+          parameter_value: v
+        }
+      end
+
+      region.client.create_stack(
+        stack_name: name,
+        template_body: template.local.to_json,
+        parameters: params,
         capabilities: capabilities.local
       )
 
       wait_while_status 'CREATE_IN_PROGRESS' if blocking
-    rescue AWS::CloudFormation::Errors::ValidationError => err
+    rescue Aws::CloudFormation::Errors::ValidationError => err
       raise Error.new err.message
     end
 
@@ -122,20 +140,17 @@ JSON
 
       Stacker.logger.info 'Updating stack'
 
-      update_params = {
-        template: template.local,
-        parameters: parameters.resolved,
-        capabilities: capabilities.local
-      }
-
       unless allow_destructive
-        update_params[:stack_policy_during_update_body] = SAFE_UPDATE_POLICY
+        # Check for deletes or replacements in the change set
       end
 
-      client.update(update_params)
+      region.client.execute_change_set(
+        change_set_name: change_set,
+        stack_name: name
+      )
 
       wait_while_status 'UPDATE_IN_PROGRESS' if blocking
-    rescue AWS::CloudFormation::Errors::ValidationError => err
+    rescue Aws::CloudFormation::Errors::ValidationError => err
       case err.message
       when /does not exist/
         raise DoesNotExistError.new err.message
@@ -146,7 +161,45 @@ JSON
       end
     end
 
+    def describe_change_set
+      resp = region.client.describe_change_set(
+        change_set_name: change_set,
+        stack_name: name
+      )
+      resp.changes.map do |c|
+        rc = c.resource_change
+        {
+          type: c.type,
+          change: {
+            logical_resource_id: rc.logical_resource_id,
+            action: rc.action,
+            details: rc.details,
+            replacement: rc.replacement,
+            scope: rc.scope
+          }
+        }
+      end
+    end
+
     private
+
+    def change_set
+      return @change_set_name if defined? @change_set_name
+      @change_set_name = 'generaterandomhere'
+      region.client.create_change_set(
+        stack_name: name,
+        template_body: template.local.to_json,
+        parameters: parameters.local.map do |k, v|
+          {
+            parameter_key: k,
+            parameter_value: v
+          }
+        end,
+        capabilities: capabilities.local,
+        change_set_name: @change_set_name
+      )
+      @change_set_name
+    end
 
     def report_status
       case status
@@ -169,6 +222,7 @@ JSON
     end
 
     def wait_while_status wait_status
+      sleep 2 # Give CFN some time to move out of the previous state.
       while flush_cache('status') && status == wait_status
         report_status
         sleep 5

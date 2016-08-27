@@ -9,7 +9,10 @@ module Stacker
       end
 
       def remote
-        @remote ||= client.capabilities
+        # `capabilities` actually returns a
+        # !ruby/array:Aws::Xml::DefaultList, so we convert to a Ruby
+        # Array with `map`
+        @remote ||= client.capabilities.map(&:self)
       end
 
     end

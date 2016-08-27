@@ -68,6 +68,10 @@ module Stacker
         if stack.exists?
           next unless full_diff stack
 
+          if yes? "Review change set (CFN's execution plan)?"
+            puts YAML.dump stack.describe_change_set
+          end
+
           if yes? "Update remote template with these changes (y/n)?"
             time = Benchmark.realtime do
               stack.update allow_destructive: options['allow_destructive']
