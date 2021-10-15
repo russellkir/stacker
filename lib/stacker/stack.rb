@@ -173,7 +173,7 @@ JSON
     def describe_change_set
       changes = []
       resp_status = ""
-      while resp_status != "CREATE_COMPLETE" && changes.empty?
+      while resp_status != "CREATE_COMPLETE"
         resp = region.client.describe_change_set(
           change_set_name: change_set,
           stack_name: name
@@ -183,7 +183,7 @@ JSON
         if ["DELETE_PENDING", "DELETE_IN_PROGRESS", "DELETE_COMPLETE", "DELETE_FAILED", "FAILED"].include? resp_status
           raise CannotDescribeChangeSet.new resp.status_reason
         end
-        if resp_status != "CREATE_COMPLETE" || changes.empty?
+        if resp_status != "CREATE_COMPLETE"
           puts resp_status
           sleep 1
         end
