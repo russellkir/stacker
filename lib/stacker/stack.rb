@@ -193,7 +193,7 @@ JSON
           
         )
         resp_status = resp.status
-        if resp_status == "FAILED"
+        if ["DELETE_PENDING", "DELETE_IN_PROGRESS", "DELETE_COMPLETE", "DELETE_FAILED", "FAILED"].include? resp_status
           raise Error.new resp.status_reason
         end
         if resp_status != "CREATE_COMPLETE"
