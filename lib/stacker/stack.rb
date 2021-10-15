@@ -171,7 +171,6 @@ JSON
     end
 
     def describe_change_set
-      retries = 6
       changes = []
       resp_status = ""
       while resp_status != "CREATE_COMPLETE" && changes.empty?
