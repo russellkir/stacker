@@ -185,6 +185,23 @@ JSON
           sleep ((6 - retries) * 3)
         end
       end
+      resp_status = ""
+      while resp_status != "CREATE_COMPLETE"
+        resp = region.client.describe_change_set(
+          change_set_name: change_set,
+          stack_name: name,
+          
+        )
+        resp_status = resp.status
+        if resp_status == "FAILED"
+          raise Error.new "Change set failed"
+        end
+        if resp_status != "CREATE_COMPLETE"
+          puts resp_status
+          sleep 1
+        end
+      end
+
       changes.map do |c|
         rc = c.resource_change
         {
