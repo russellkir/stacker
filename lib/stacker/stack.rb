@@ -171,18 +171,21 @@ JSON
     end
 
     def describe_change_set
-      retries = 6
       changes = []
-      while changes.empty?
+      resp_status = ""
+      while resp_status != "CREATE_COMPLETE"
         resp = region.client.describe_change_set(
           change_set_name: change_set,
           stack_name: name
         )
+        resp_status = resp.status
         changes = resp.changes
-        if changes.empty?
-          raise CannotDescribeChangeSet.new 'Empty change set' if retries == 0
-          retries -= 1
-          sleep ((6 - retries) * 3)
+        if ["DELETE_PENDING", "DELETE_IN_PROGRESS", "DELETE_COMPLETE", "DELETE_FAILED", "FAILED"].include? resp_status
+          raise CannotDescribeChangeSet.new resp.status_reason
+        end
+        if resp_status != "CREATE_COMPLETE"
+          puts resp_status
+          sleep 1
         end
       end
       changes.map do |c|
