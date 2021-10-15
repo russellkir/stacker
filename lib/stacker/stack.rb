@@ -194,7 +194,7 @@ JSON
         )
         resp_status = resp.status
         if resp_status == "FAILED"
-          raise Error.new "Change set failed"
+          raise Error.new resp.status_reason
         end
         if resp_status != "CREATE_COMPLETE"
           puts resp_status
