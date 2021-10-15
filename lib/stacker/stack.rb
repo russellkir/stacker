@@ -177,7 +177,7 @@ JSON
       while resp_status != "CREATE_COMPLETE" && changes.empty?
         resp = region.client.describe_change_set(
           change_set_name: change_set,
-          stack_name: name,
+          stack_name: name
         )
         resp_status = resp.status
         changes = resp.changes
