@@ -189,7 +189,6 @@ JSON
           sleep 1
         end
       end
-
       changes.map do |c|
         rc = c.resource_change
         {
