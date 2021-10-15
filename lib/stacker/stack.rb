@@ -184,7 +184,7 @@ JSON
         if ["DELETE_PENDING", "DELETE_IN_PROGRESS", "DELETE_COMPLETE", "DELETE_FAILED", "FAILED"].include? resp_status
           raise CannotDescribeChangeSet.new resp.status_reason
         end
-        if resp_status != "CREATE_COMPLETE" && changes.empty?
+        if resp_status != "CREATE_COMPLETE" || changes.empty?
           puts resp_status
           sleep 1
         end
