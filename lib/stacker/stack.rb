@@ -205,9 +205,6 @@ JSON
         riw = describe_change_set.map do |c|
           c[:change][:logical_resource_id].length
         end.max
-      else
-        puts "Empty change set"
-        riw = 0
       end
       fmt = "%-6s %-#{riw}s %-5s"
 
