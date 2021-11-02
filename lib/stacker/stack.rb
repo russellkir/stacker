@@ -200,6 +200,10 @@ JSON
     memoize :describe_change_set
 
     def pretty_change_set
+      if describe_change_set.size == 0
+        puts "Empty change set, exiting"
+        exit
+      end
       riw = describe_change_set.map do |c|
         c[:change][:logical_resource_id].length
       end.max
