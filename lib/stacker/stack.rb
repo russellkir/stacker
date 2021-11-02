@@ -203,9 +203,12 @@ JSON
     memoize :describe_change_set
 
     def pretty_change_set
-      riw = describe_change_set.map do |c|
-        c[:change][:logical_resource_id].length
-      end.max
+      riw = 0
+      if describe_change_set.size != 0
+        riw = describe_change_set.map do |c|
+          c[:change][:logical_resource_id].length
+        end.max
+      end
       fmt = "%-6s %-#{riw}s %-5s"
 
       ([fmt % ['Action', 'Resource', 'Replacement?'], '='*(riw+20)] +
