@@ -185,7 +185,7 @@ JSON
         end
         if resp_status != "CREATE_COMPLETE"
           puts resp_status
-          sleep 1
+          sleep 5
         end
       end
       changes.map do |c|
@@ -279,7 +279,7 @@ JSON
     def wait_until_complete
       while !(status =~ STATUS_COMPLETE_REGEX)
         report_status
-        sleep 5
+        sleep 10
       end
       report_status
     end
